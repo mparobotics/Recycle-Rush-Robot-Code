@@ -3,151 +3,153 @@
 class Robot: public IterativeRobot
 {
 private:
-	double safteyspeed = .3;
-	double incriment = .1;
-	bool triggersaftey = false;
-	bool triggerincriment = false;
-	bool buttonlift = false;
-	bool buttonreverse = false;
-	bool limitswitchactive = false;
+	//%%% Vocabulary and definitions - if you don't know a word it will most likley be here
+	//NCIU = Not Currently In Use (will be taken out in optimized code, however for ease of reading and understanding structure they are in)
+	//Pointers: The little asterisk *, don't concern yoursself about this to much unless you are a coder in which case just Google it
+	//Autonomous: The start of the game, where the robot runs pre-determined commands and there is no user control
+	//Teleoperation: The time of the game where drivers step forward and take control of the robot
+	//Deadzone: A space where there may be input, but nothing will be activated to make sure it wasn't by accident
+	CANTalon *TalonSRX1;
+	CANTalon *TalonSRX2;
+	CANTalon *TalonSRX3;
+	CANTalon *TalonSRX4;
 
-	bool newmat1forward = false;
-	bool newmat1reverse = false;
-	bool newmat1off = false;
-	CANTalon *talonsrx1;
-	CANTalon *talonsrx2;
-	CANTalon *talonsrx3;
-	CANTalon *talonsrx4;
+	RobotDrive *DriveSystem; //NCIU
 
-	RobotDrive *myrobot;
+	Joystick *LeftStick; //Left and Right sticks are for driving
+	float LeftStickInput = 0.0;
+	Joystick *RightStick;
+	float RightStickInput = 0.0;
+	Joystick *XBoxPlayer1; //Controller of basically anything that isn't drive
+	//XBox Controller Buttons
+	//A = 1    B = 2  X = 3   Y = 4  LB = 5  RB = 6  Back = 7  Start = 8  LeftTrigger Click = 9  RightTrigger Click = 10
+	//XBox Controller Axis
+	//Leftstick X = 0  Leftstick Y = 1  Left Trigger = 2  Right Trigger = 3  Right X = 4  Right Y = 5
+	float LeftXBoxXInput = 0.0; //NCIU
+	float LeftXboxYInput = 0.0; //NCIU
+	float XBoxLeftTrigger = 0.0; //NCIU
+	float XBoxRightTrigger = 0.0; //NCIU
+	float RightXBoxXInput = 0.0; //NCIU
+	float RightXboxYInput = 0.0; //NCIU
 
-	Joystick *leftstick; //Joysticks have to be at 0 and 1
-	Joystick *rightstick;
+	Talon *LiftMotor;
+	bool MotorForward = false;
+	bool MotorReverse = false; //NCIU
 
-	Talon *liftmotor;
-	DigitalInput *liftlimit;
+	DigitalInput *LimitSwitchTop;
+	bool LimitSwitchTopCheck = false; //NCIU
+	DigitalInput *LimitSwitchBot; //NCIU
+	bool LimitSwitchBotCheck = false; //NCIU
 
-	DoubleSolenoid *newmat1;
+	DoubleSolenoid *ArmSolenoid;
+	bool SolenoidForward = false;
+	bool SolenoidReverse = false;
+	bool SolenoidOff = false; // NCIU
 
 	void RobotInit()
 	{
-		talonsrx1 = new CANTalon(1); //left back
-		talonsrx2 = new CANTalon(2); //left front
-		talonsrx3 = new CANTalon(3); //right back
-		talonsrx4 = new CANTalon(4); //right front
+		//When the robot becomes activated it will initialize, acepting the pointers%%% from above and finding out what they are
+		TalonSRX1 = new CANTalon(1);
+		TalonSRX2 = new CANTalon(2);
+		TalonSRX3 = new CANTalon(3);
+		TalonSRX4 = new CANTalon(4);
 
-		myrobot = new RobotDrive (talonsrx1, talonsrx2, talonsrx3, talonsrx4);
+		DriveSystem = new RobotDrive(TalonSRX1, TalonSRX2, TalonSRX3, TalonSRX4); //Keeping this in just in case we suddenly need it
 
-		leftstick = new Joystick(0);
-		rightstick = new Joystick(1);
+		LeftStick = new Joystick(0);
+		RightStick = new Joystick(1);
+		XBoxPlayer1 = new Joystick(0);
 
-		liftmotor = new Talon(0);
-		liftlimit = new DigitalInput(0);
+		LiftMotor = new Talon(0);
 
-		newmat1 = new DoubleSolenoid(5, 0, 1);
-	}
+		LimitSwitchTop = new DigitalInput(0);
+		LimitSwitchBot = new DigitalInput(1);
+
+		ArmSolenoid = new DoubleSolenoid(5, 3, 4);
+	} //End RobotInit
 
 	void AutonomousInit()
 	{
-	//empty
-	}
+		//Called at the start of Autonomous%%%
+		//If you want to initialize any variables for Autonomous put them here
+	} //End AutonomousInit
 
 	void AutonomousPeriodic()
 	{
-	//empty
-	}
+		//Called periodicly during Autonomous
+	} //End AutonomousPeriodic
 
 	void TeleopInit()
 	{
-	//empty
-	}
+		//Called at the start of Teloperation%%%
+		//If you want to initialize any variables for Teleoperation put them here
+	} //End TeleopInit
 
 	void TeleopPeriodic()
 	{
-		myrobot->TankDrive(leftstick, rightstick);
+		//Called periodicly during Teleoperation
+								/*	Tank drive system based on the Y input of each joystick		*/
+		LeftStickInput = LeftStick->GetY();
+		RightStickInput = RightStick->GetY();
 
-		/*If (liftmotorIsRunning && liftLimit->Get() == true)
+		TalonSRX1->Set(LeftStickInput);
+		TalonSRX2->Set(LeftStickInput);
+		TalonSRX3->Set(RightStickInput);
+		TalonSRX4->Set(RightStickInput);
+//////////////////////////////////////////////////LIFT MOTOR AND LIMIT SWITCH////////////////////////////////////////////////////////////////
+		if (XBoxPlayer1->GetRawAxis(3) < -.2 or XBoxPlayer1->GetRawAxis(3) > .2)
 		{
-
-		}*/
-		if (leftstick->GetRawButton(4) == true)
-		{
-			if (buttonlift == false)
+			if (MotorForward == false) //If bool is false
 			{
-				buttonlift = true;
-				if (liftlimit->Get() != true)
+				MotorForward = true; //Set it to true
+				if (LimitSwitchTop->Get() != true) //If LimitSwitchTop is not sending a true signal
 				{
-					//liftmotorIsRunning = true;
-					liftmotor->Set(1.0);
+					LiftMotor->Set(XBoxPlayer1->GetRawAxis(3)); //Set the lift motor to the XBoxPlayer1 righttrigger axis
 				}
 			}
-			else //check to see if you hit the limit, if it was pressed and is pressed
+			else //If MotorForward is not false (true)
 			{
-				if (liftlimit->Get() == true)
+				if (LimitSwitchTop->Get() == true) //If the limit switch is activated
 				{
-					liftmotor->Set(0.0);
+					LiftMotor->Set(0.0); //Set the LiftMotor to 0.0 (0ff)
 				}
 			}
 		}
-		else
-		{
-			buttonlift = false;
-		}
+		else MotorForward = false; //If LeftStick X axis is not in the above parameters set MotorForward to false
 
-		if (leftstick->GetRawButton(5) == true)
+		if (XBoxPlayer1->GetRawAxis(3) >= -.2 and XBoxPlayer1->GetRawAxis(3) <= .2) //If RightTrigger is in the deadzone%%%
 		{
-			if (buttonreverse == false)
+			LiftMotor->Set(0.0); //Set it to 0.0 (off)
+		}
+///////////////////////////////////////////////////////////////SOLENOID//////////////////////////////////////////////////////////////////////
+															//FORWARD//
+		if (XBoxPlayer1->GetRawButton(1) == true) //if XBoxPlayer1 A gets activated
+		{
+			if (SolenoidForward == false) //If SolenoidForward is false
 			{
-				buttonreverse = true;
-				liftmotor->Set(-.3);
-			}
-			else buttonreverse = false;
-		}
-
-		else if (buttonlift == false && leftstick->GetRawButton(4) != true)
-		{
-		liftmotor->Set(0.0);
-		}
-
-		if (rightstick->GetRawButton(4))
-		{
-			if (newmat1forward == false)
-			{
-			newmat1forward = true;
-			newmat1->Set(DoubleSolenoid::Value::kForward);
+				SolenoidForward = true; //Set it to true
+				ArmSolenoid->Set(DoubleSolenoid::Value::kForward); //And set ArmSolenoid to forward
 			}
 		}
-		else
+		else SolenoidForward = false; //If XBoxPlayer1 A is not activated set SolenoidForward to false
+															//REVERSE//
+		if (XBoxPlayer1->GetRawButton(2) == true) //If XBoxPlayer1 B  is activated
 		{
-			newmat1forward = false;
-		}
-
-		if (rightstick->GetRawButton(5))
-		{
-			if (newmat1reverse == false)
+			if (SolenoidReverse == false) //If SolenoidReverse is false
 			{
-			newmat1reverse = true;
-			newmat1->Set(DoubleSolenoid::Value::kReverse);
+				SolenoidReverse = true; //Set it to true
+				ArmSolenoid->Set(DoubleSolenoid::Value::kReverse); //And set ArmSolenoid to reverse
 			}
 		}
-		else
+		else SolenoidReverse = false; //If XBoxPlayer1 B is not activated set SolenoidReverse to false
+															//Off//
+		if (XBoxPlayer1->GetRawButton(1) != true and XBoxPlayer1->GetRawButton(2) != true) //If neither button is pressed
 		{
-			newmat1reverse = false;
+			ArmSolenoid->Set(DoubleSolenoid::Value::kOff); //Set ArmSolenoid to off
 		}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	}//End TeleopPeriodic
 
+}; //End Robot Class
 
-	    if (newmat1forward == false && newmat1reverse == false)
-		{
-	    	newmat1->Set(DoubleSolenoid::Value::kOff);
-		}
-
-		Wait(0.005);
-	} //end TeleopPeriodic()
-
-	void TestPeriodic()
-	{
-	//empty
-	}
-};
-
-START_ROBOT_CLASS(Robot);
+START_ROBOT_CLASS(Robot); //Starts the class Robot (see the top of the page, that is what we are starting and thefore it starts everything
