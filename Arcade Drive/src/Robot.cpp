@@ -18,8 +18,10 @@ private:
 
 	Joystick *LeftStick; //Left and Right sticks are for driving
 	float LeftStickInput = 0.0;
+	bool LeftStickTrigger = false; // LeftStick Trigger (1)
 	Joystick *RightStick;
 	float RightStickInput = 0.0;
+	bool RightTrigger1 = false; // NCIU
 	Joystick *XBoxPlayer1; //Controller of basically anything that isn't drive
 	//XBox Controller Buttons
 	//A = 1    B = 2  X = 3   Y = 4  LB = 5  RB = 6  Back = 7  Start = 8  LeftTrigger Click = 9  RightTrigger Click = 10
@@ -58,7 +60,7 @@ private:
 
 		LeftStick = new Joystick(0);
 		RightStick = new Joystick(1);
-		XBoxPlayer1 = new Joystick(0);
+		XBoxPlayer1 = new Joystick(2);
 
 		LiftMotor = new Talon(0);
 
@@ -68,43 +70,60 @@ private:
 		ArmSolenoid = new DoubleSolenoid(5, 3, 4);
 	} //End RobotInit
 
-	void AutonomousInit()
+	void AutonomousInit() //Called at the start of Autonomous%%%. If you want to initialize any variables for Autonomous put them here
 	{
-		//Called at the start of Autonomous%%%
-		//If you want to initialize any variables for Autonomous put them here
+
 	} //End AutonomousInit
 
-	void AutonomousPeriodic()
+	void AutonomousPeriodic() //Called periodicly during Autonomous
 	{
-		//Called periodicly during Autonomous
+		TalonSRX1->Set(.3);  TalonSRX2->Set(.3);  TalonSRX3->Set(-.3);  TalonSRX4->Set(-.3); Wait(3);
+		TalonSRX1->Set(0.0);  TalonSRX1->Set(0.0);  TalonSRX1->Set(0.0);  TalonSRX1->Set(0.0);
 	} //End AutonomousPeriodic
 
-	void TeleopInit()
+	void TeleopInit() //Called at the start of Teloperation%%%. If you want to initialize any variables for Teleoperation put them here
 	{
-		//Called at the start of Teloperation%%%
-		//If you want to initialize any variables for Teleoperation put them here
+
 	} //End TeleopInit
 
 	void TeleopPeriodic()
 	{
 		//Called periodicly during Teleoperation
-								/*	Tank drive system based on the Y input of each joystick		*/
+		DriveSystem->SetSafetyEnabled(false);
+
 		LeftStickInput = LeftStick->GetY();
 		RightStickInput = RightStick->GetY();
 
-		TalonSRX1->Set(LeftStickInput);
-		TalonSRX2->Set(LeftStickInput);
-		TalonSRX3->Set(RightStickInput);
-		TalonSRX4->Set(RightStickInput);
+		if (LeftStick->GetRawButton(1) == true)
+		{
+				LeftStickInput = LeftStickInput / 2;
+				RightStickInput = RightStickInput / 2;
+		}
+
+		DriveSystem->TankDrive(LeftStickInput, RightStickInput, false); //TankDrive with floats, NOT JOYSTICKS!
+
+/////////////////////////////////////////////////////AREA FOR TEMPORARY CODE/////////////////////////////////////////////////////////////////
+		if(XBoxPlayer1->GetRawButton(7) == true)
+		{
+			LiftMotor->Set(-.5); //Up
+		}
+		if(XBoxPlayer1->GetRawButton(8) == true)
+		{
+			LiftMotor->Set(.4); //Down
+		}
+		if(XBoxPlayer1->GetRawButton(7) != true and XBoxPlayer1->GetRawButton(8) != true)
+		{
+			LiftMotor->Set(0.0);
+		}
 //////////////////////////////////////////////////LIFT MOTOR AND LIMIT SWITCH////////////////////////////////////////////////////////////////
-		if (XBoxPlayer1->GetRawAxis(3) < -.2 or XBoxPlayer1->GetRawAxis(3) > .2)
+		if (XBoxPlayer1->GetRawButton(7))
 		{
 			if (MotorForward == false) //If bool is false
 			{
 				MotorForward = true; //Set it to true
 				if (LimitSwitchTop->Get() != true) //If LimitSwitchTop is not sending a true signal
 				{
-					LiftMotor->Set(XBoxPlayer1->GetRawAxis(3)); //Set the lift motor to the XBoxPlayer1 righttrigger axis
+					LiftMotor->Set(.4); //Set the lift motor to the XBoxPlayer1 righttrigger axis
 				}
 			}
 			else //If MotorForward is not false (true)
@@ -117,7 +136,7 @@ private:
 		}
 		else MotorForward = false; //If LeftStick X axis is not in the above parameters set MotorForward to false
 
-		if (XBoxPlayer1->GetRawAxis(3) >= -.2 and XBoxPlayer1->GetRawAxis(3) <= .2) //If RightTrigger is in the deadzone%%%
+		if (XBoxPlayer1->GetRawButton(7) != true) //If RightTrigger is in the deadzone%%%
 		{
 			LiftMotor->Set(0.0); //Set it to 0.0 (off)
 		}
