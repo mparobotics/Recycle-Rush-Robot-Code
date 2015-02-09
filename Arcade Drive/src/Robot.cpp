@@ -103,20 +103,20 @@ private:
 		DriveSystem->TankDrive(LeftStickInput, RightStickInput, false); //TankDrive with floats, NOT JOYSTICKS!
 
 /////////////////////////////////////////////////////AREA FOR TEMPORARY CODE/////////////////////////////////////////////////////////////////
-		if(XBoxPlayer1->GetRawButton(7) == true)
+		if(XBoxPlayer1->GetRawButton(6) == true)
 		{
 			LiftMotor->Set(-.5); //Up
 		}
-		if(XBoxPlayer1->GetRawButton(8) == true)
+		if(XBoxPlayer1->GetRawButton(5) == true)
 		{
 			LiftMotor->Set(.4); //Down
 		}
-		if(XBoxPlayer1->GetRawButton(7) != true and XBoxPlayer1->GetRawButton(8) != true)
+		if(XBoxPlayer1->GetRawButton(6) != true and XBoxPlayer1->GetRawButton(8) != true)
 		{
 			LiftMotor->Set(0.0);
 		}
 //////////////////////////////////////////////////LIFT MOTOR AND LIMIT SWITCH////////////////////////////////////////////////////////////////
-		if (XBoxPlayer1->GetRawButton(7))
+		if (XBoxPlayer1->GetRawButton(6))
 		{
 			if (MotorForward == false) //If bool is false
 			{
