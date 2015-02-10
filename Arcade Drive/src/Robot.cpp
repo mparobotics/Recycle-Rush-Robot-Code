@@ -69,7 +69,72 @@ private:
 
 		ArmSolenoid = new DoubleSolenoid(5, 3, 4);
 	} //End RobotInit
-
+//////////////////////////////////////////////////////FUNCTIONS FOR AUTONOMOUS///////////////////////////////////////////////////////////////
+															////Drive////
+	void Drive(int wxdirection, float wxtime) //Drive takes direction and time, direction choses forwards or reverse time decides the time
+	{
+		if (wxdirection < 0)										 //If the direction is less than 0 (when called set to -1 for reverse)
+		{
+			TalonSRX1->Set(-.5); TalonSRX2->Set(-.5); TalonSRX3->Set(.5); TalonSRX4->Set(.5); //Set the talons to go in reverse (wiring)
+			Wait(wxtime / 2);																	//Wait for however long time is
+			TalonSRX1->Set(-.4); TalonSRX2->Set(-.4); TalonSRX3->Set(.4); TalonSRX4->Set(.4);
+			Wait(wxtime / 8);
+			TalonSRX1->Set(-.3); TalonSRX2->Set(-.3); TalonSRX3->Set(.3); TalonSRX4->Set(.3);
+			Wait(wxtime / 8);
+			TalonSRX1->Set(-.2); TalonSRX2->Set(-.2); TalonSRX3->Set(.2); TalonSRX4->Set(.2);
+			Wait(wxtime / 8);
+			TalonSRX1->Set(-.1); TalonSRX2->Set(-.1); TalonSRX3->Set(.1); TalonSRX4->Set(.1);
+			Wait(wxtime / 8);
+			TalonSRX1->Set(0); TalonSRX2->Set(0); TalonSRX3->Set(0); TalonSRX4->Set(0);		 //Than turn them off
+		}
+		if (wxdirection > 0) 										//If the direction is greater than 0 (when called set to 1 for forward)
+		{
+			TalonSRX1->Set(.5); TalonSRX2->Set(.5); TalonSRX3->Set(-.5); TalonSRX4->Set(-.5); //Set the talons to go in reverse (wiring)
+			Wait(wxtime / 2);																	//Wait for however long time is
+			TalonSRX1->Set(.4); TalonSRX2->Set(.4); TalonSRX3->Set(-.4); TalonSRX4->Set(-.4);
+			Wait(wxtime / 8);
+			TalonSRX1->Set(.3); TalonSRX2->Set(.3); TalonSRX3->Set(-.3); TalonSRX4->Set(-.3);
+			Wait(wxtime / 8);
+			TalonSRX1->Set(.2); TalonSRX2->Set(.2); TalonSRX3->Set(-.2); TalonSRX4->Set(-.2);
+			Wait(wxtime / 8);
+			TalonSRX1->Set(.1); TalonSRX2->Set(.1); TalonSRX3->Set(-.1); TalonSRX4->Set(-.1);
+			Wait(wxtime / 8);
+			TalonSRX1->Set(0); TalonSRX2->Set(0); TalonSRX3->Set(0); TalonSRX4->Set(0);			//Than turn them off
+		}
+	}
+															////Turn////
+	void Turn (int wxdirection, float wxtime) //Takes direction for left or right and time for the time to execute
+	{
+		if (wxdirection < 0) 																//If direction if less than 0
+		{
+			TalonSRX1->Set(.5); TalonSRX2->Set(.5); TalonSRX3->Set(.5); TalonSRX4->Set(.5); //Turn the talons
+			Wait(wxtime);																	//Wait for time
+			TalonSRX1->Set(0); TalonSRX2->Set(0); TalonSRX3->Set(0); TalonSRX4->Set(0);		//Turn the talons off
+		}
+		if (wxdirection > 0)																//If direction is greater than 1
+		{
+			TalonSRX1->Set(-.5); TalonSRX2->Set(-.5); TalonSRX3->Set(-.5); TalonSRX4->Set(-.5); //Turn the talons
+			Wait(wxtime);																		//Wait for time
+			TalonSRX1->Set(0); TalonSRX2->Set(0); TalonSRX3->Set(0); TalonSRX4->Set(0);			//Turn the talons off
+		}
+	}
+														////Solenoid Commands////
+	void ArmSolenoidCommand (int wxopenorclose, float wxtime) //Takes open or close and time
+	{
+		if (wxopenorclose < 0)									//If direction is less than 0 (close)
+		{														//
+			ArmSolenoid->Set(DoubleSolenoid::Value::kReverse);	//Set the solenoid to reverse
+			Wait(wxtime);										//Wait for time
+			ArmSolenoid->Set(DoubleSolenoid::Value::kOff);		//Turn the solenoid off
+		}
+		if (wxopenorclose > 0)									//If direction is greater than 0
+		{														//
+			ArmSolenoid->Set(DoubleSolenoid::Value::kForward);	//Set the solenoid to forward
+			Wait(wxtime);										//Wait for time
+			ArmSolenoid->Set(DoubleSolenoid::Value::kOff);		//Turn the solenoid off
+		}
+	}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	void AutonomousInit() //Called at the start of Autonomous%%%. If you want to initialize any variables for Autonomous put them here
 	{
 
@@ -77,10 +142,8 @@ private:
 
 	void AutonomousPeriodic() //Called periodicly during Autonomous
 	{
-		TalonSRX1->Set(.3);  TalonSRX2->Set(.3);  TalonSRX3->Set(-.3);  TalonSRX4->Set(-.3); Wait(3);
-		TalonSRX1->Set(0.0);  TalonSRX1->Set(0.0);  TalonSRX1->Set(0.0);  TalonSRX1->Set(0.0);
+		Drive(1, 5);
 	} //End AutonomousPeriodic
-
 	void TeleopInit() //Called at the start of Teloperation%%%. If you want to initialize any variables for Teleoperation put them here
 	{
 
@@ -91,54 +154,77 @@ private:
 		//Called periodicly during Teleoperation
 		DriveSystem->SetSafetyEnabled(false);
 
-		LeftStickInput = LeftStick->GetY();
-		RightStickInput = RightStick->GetY();
+		LeftStickInput = LeftStick->GetY() * -1;
+		RightStickInput = RightStick->GetY() * -1;
 
+		if (RightStick->GetRawButton(1) == true)
+		{
+			LeftStickInput = RightStick->GetY() * -1;
+		}
 		if (LeftStick->GetRawButton(1) == true)
 		{
-				LeftStickInput = LeftStickInput / 2;
-				RightStickInput = RightStickInput / 2;
+			LeftStickInput = LeftStickInput / 2;
+			RightStickInput = RightStickInput / 2;
 		}
 
 		DriveSystem->TankDrive(LeftStickInput, RightStickInput, false); //TankDrive with floats, NOT JOYSTICKS!
 
 /////////////////////////////////////////////////////AREA FOR TEMPORARY CODE/////////////////////////////////////////////////////////////////
-		if(XBoxPlayer1->GetRawButton(6) == true)
-		{
-			LiftMotor->Set(-.5); //Up
-		}
-		if(XBoxPlayer1->GetRawButton(5) == true)
-		{
-			LiftMotor->Set(.4); //Down
-		}
-		if(XBoxPlayer1->GetRawButton(6) != true and XBoxPlayer1->GetRawButton(8) != true)
-		{
-			LiftMotor->Set(0.0);
-		}
+		if(XBoxPlayer1->GetRawButton(6) == true) LiftMotor->Set(-1); //Up
+		if(XBoxPlayer1->GetRawButton(5) == true) LiftMotor->Set(1); //Down
+		if(XBoxPlayer1->GetRawButton(5) != true and XBoxPlayer1->GetRawButton(6) != true) LiftMotor->Set(0.0);
+
+/*		if (XBoxPlayer1->GetRawButton(1) == true) ArmSolenoid->Set(DoubleSolenoid::Value::kForward);
+		if (XBoxPlayer1->GetRawButton(2) == true) ArmSolenoid->Set(DoubleSolenoid::Value::kReverse);
+		if (XBoxPlayer1->GetRawButton(1) != true and XBoxPlayer1->GetRawButton(2) != true) ArmSolenoid->Set(DoubleSolenoid::Value::kOff);*/
 //////////////////////////////////////////////////LIFT MOTOR AND LIMIT SWITCH////////////////////////////////////////////////////////////////
-		if (XBoxPlayer1->GetRawButton(6))
+/*															//Up//
+		if (XBoxPlayer1->GetRawButton(5) == true) //If RightBumper is pressed
 		{
 			if (MotorForward == false) //If bool is false
 			{
 				MotorForward = true; //Set it to true
 				if (LimitSwitchTop->Get() != true) //If LimitSwitchTop is not sending a true signal
 				{
-					LiftMotor->Set(.4); //Set the lift motor to the XBoxPlayer1 righttrigger axis
+					LiftMotor->Set(-.5); //Set LiftMotor to 50% reverse (reverse moves our system up)
 				}
 			}
 			else //If MotorForward is not false (true)
 			{
 				if (LimitSwitchTop->Get() == true) //If the limit switch is activated
 				{
-					LiftMotor->Set(0.0); //Set the LiftMotor to 0.0 (0ff)
+					LiftMotor->Set(0.0); //Set the LiftMotor to 0% speed
 				}
 			}
 		}
-		else MotorForward = false; //If LeftStick X axis is not in the above parameters set MotorForward to false
-
-		if (XBoxPlayer1->GetRawButton(7) != true) //If RightTrigger is in the deadzone%%%
+		else MotorForward = false; //If RightBumper is not pressed set MotorForward to false
+															//Down//
+		if (XBoxPlayer1->GetRawButton(6) == true) //If LeftBumper is pressed
 		{
-			LiftMotor->Set(0.0); //Set it to 0.0 (off)
+			if (MotorReverse == false) //If bool is false
+			{
+				MotorReverse = true; //Set it to true
+				if (LimitSwitchBot->Get() != true) //If LimitSwitchBot is not sending a true signal
+				{
+					LiftMotor->Set(.5); //Set LiftMotor to 50% forward (this will move the arm down)
+				}
+			}
+			else //If the bool is true
+			{
+				if (LimitSwitchBot->Get() == true) //If LimitSwitchBot is sending a true signal
+				{
+					LiftMotor->Set(0.0); //Set the motors to 0% speed
+				}
+			}
+		}
+		else //If the LeftBumper is not pressed
+		{
+			MotorReverse = false; //Set the bool to false
+		}
+
+		if (XBoxPlayer1->GetRawButton(5) != true and XBoxPlayer1->GetRawButton(6) != true) //If RightBumper and LeftBumper are not pressed
+		{
+			LiftMotor->Set(0.0); //Set it to 0% (off)
 		}
 ///////////////////////////////////////////////////////////////SOLENOID//////////////////////////////////////////////////////////////////////
 															//FORWARD//
@@ -165,7 +251,7 @@ private:
 		if (XBoxPlayer1->GetRawButton(1) != true and XBoxPlayer1->GetRawButton(2) != true) //If neither button is pressed
 		{
 			ArmSolenoid->Set(DoubleSolenoid::Value::kOff); //Set ArmSolenoid to off
-		}
+		}*/
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	}//End TeleopPeriodic
 
