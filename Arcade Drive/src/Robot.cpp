@@ -3,12 +3,6 @@
 class Robot: public IterativeRobot
 {
 private:
-	//%%% Vocabulary and definitions - if you don't know a word it will most likley be here
-	//NCIU = Not Currently In Use (will be taken out in optimized code, however for ease of reading and understanding structure they are in)
-	//Pointers: The little asterisk *, don't concern yoursself about this to much unless you are a coder in which case just Google it
-	//Autonomous: The start of the game, where the robot runs pre-determined commands and there is no user control
-	//Teleoperation: The time of the game where drivers step forward and take control of the robot
-	//Deadzone: A space where there may be input, but nothing will be activated to make sure it wasn't by accident
 	CANTalon *TalonSRX1;
 	CANTalon *TalonSRX2;
 	CANTalon *TalonSRX3;
@@ -16,17 +10,28 @@ private:
 
 	RobotDrive *DriveSystem; //NCIU
 
-	Joystick *LeftStick; //Left and Right sticks are for driving
+	Joystick *LeftStick; //Left Drive
 	float LeftStickInput = 0.0;
 	bool LeftStickTrigger = false; // LeftStick Trigger (1)
-	Joystick *RightStick;
+
+
+	Joystick *RightStick; //Right Drive
 	float RightStickInput = 0.0;
 	bool RightTrigger1 = false; // NCIU
+
 	Joystick *XBoxPlayer1; //Controller of basically anything that isn't drive
+
+
+
+
 	//XBox Controller Buttons
 	//A = 1    B = 2  X = 3   Y = 4  LB = 5  RB = 6  Back = 7  Start = 8  LeftTrigger Click = 9  RightTrigger Click = 10
 	//XBox Controller Axis
 	//Leftstick X = 0  Leftstick Y = 1  Left Trigger = 2  Right Trigger = 3  Right X = 4  Right Y = 5
+
+
+
+
 	float LeftXBoxXInput = 0.0; //NCIU
 	float LeftXboxYInput = 0.0; //NCIU
 	float XBoxLeftTrigger = 0.0; //NCIU
@@ -225,7 +230,7 @@ private:
 		if (XBoxPlayer1->GetRawButton(5) != true and XBoxPlayer1->GetRawButton(6) != true) //If RightBumper and LeftBumper are not pressed
 		{
 			LiftMotor->Set(0.0); //Set it to 0% (off)
-		}
+		}*/
 ///////////////////////////////////////////////////////////////SOLENOID//////////////////////////////////////////////////////////////////////
 															//FORWARD//
 		if (XBoxPlayer1->GetRawButton(1) == true) //if XBoxPlayer1 A gets activated
@@ -251,7 +256,7 @@ private:
 		if (XBoxPlayer1->GetRawButton(1) != true and XBoxPlayer1->GetRawButton(2) != true) //If neither button is pressed
 		{
 			ArmSolenoid->Set(DoubleSolenoid::Value::kOff); //Set ArmSolenoid to off
-		}*/
+		}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	}//End TeleopPeriodic
 
